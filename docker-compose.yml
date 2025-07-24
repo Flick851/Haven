@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+  haven:
+    image: flick851/haven:latest
+    container_name: haven
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - HAVEN_ENHANCED_FEATURES=true
+      - HAVEN_API_COMPATIBILITY=true
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      - /path/to/media:/media
+      - /path/to/transcodes:/transcodes
+    ports:
+      - "8096:8096"
+      - "8920:8920"
+      - "1900:1900/udp"
+      - "7359:7359/udp"
+    devices:
+      # For hardware acceleration (optional)
+      - /dev/dri:/dev/dri
+    networks:
+      - haven-network
+
+  # Optional: Radarr integration
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - ./radarr-config:/config
+      - /path/to/movies:/movies
+      - /path/to/downloads:/downloads
+    ports:
+      - "7878:7878"
+    networks:
+      - haven-network
+
+  # Optional: Sonarr integration
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - ./sonarr-config:/config
+      - /path/to/tv:/tv
+      - /path/to/downloads:/downloads
+    ports:
+      - "8989:8989"
+    networks:
+      - haven-network
+
+  # Optional: SABnzbd integration
+  sabnzbd:
+    image: linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - ./sabnzbd-config:/config
+      - /path/to/downloads:/downloads
+      - /path/to/incomplete:/incomplete-downloads
+    ports:
+      - "8080:8080"
+    networks:
+      - haven-network
+
+  # Optional: qBittorrent integration
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - WEBUI_PORT=8081
+    volumes:
+      - ./qbittorrent-config:/config
+      - /path/to/downloads:/downloads
+    ports:
+      - "8081:8081"
+      - "6881:6881"
+      - "6881:6881/udp"
+    networks:
+      - haven-network
+
+networks:
+  haven-network:
+    driver: bridge
